@@ -10,8 +10,8 @@ export class Todo extends Document {
     @Prop()
     description: String;
 
-    @Prop()
-    do: String;
+    @Prop({default: false})
+    do: Boolean;
 }
 
 export const todoSchema = SchemaFactory.createForClass(Todo)

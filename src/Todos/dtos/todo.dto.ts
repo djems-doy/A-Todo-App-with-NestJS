@@ -1,7 +1,11 @@
-import { IsBoolean, IsString, MinLength } from "class-validator"
+import { IsBoolean, IsMongoId, IsString, MinLength } from "class-validator"
+import { ObjectId } from "mongoose";
 
 
 export class TodoDTO{
+
+    @IsMongoId()
+    _id: ObjectId
 
     @IsString()
     @MinLength(4)

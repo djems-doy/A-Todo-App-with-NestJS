@@ -3,12 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Todo } from '../models/todos.schema';
 import { TodoDTO } from '../dtos/todo.dto';
+import { CreateTodoDTO } from '../dtos/createTodo.dto';
 
 @Injectable()
 export class TodoService {
     constructor(@InjectModel('Todo') private readonly todoModel: Model<Todo>){}
     
-    async createTodo( todo: TodoDTO): Promise<Todo> {
+    async createTodo( todo: CreateTodoDTO): Promise<Todo> {
         
         try {
             const newTodo = await new this.todoModel(todo);
@@ -40,11 +41,14 @@ export class TodoService {
         return todo;
     }
 
-    async updateTodo( id: string, updatedTodo: TodoDTO): Promise<Todo> {
+    async updateTodo(updatedTodo: TodoDTO[]){
 
         try {
-            let todo = this.todoModel.findByIdAndUpdate(id, {...updatedTodo}, {new: true}); 
-            return todo;
+            updatedTodo.forEach(async (newTodo) => {
+                await this.todoModel.findByIdAndUpdate(newTodo._id , newTodo, {new: true}); 
+            })
+            console.log("Tab Todos :", updatedTodo)
+            // setTimeout(() => {console.log("Tab Todos :", updatedTodo)}, 5000)
         } catch (error) {
             throw new HttpException(
                 {
