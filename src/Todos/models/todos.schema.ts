@@ -4,14 +4,23 @@ import { Document } from "mongoose";
 @Schema()
 export class Todo extends Document {
 
-    @Prop({required: true})
-    name: String;
+    @Prop({required: true, unique: true})
+    name: string;
 
     @Prop()
-    description: String;
+    description: string;
+
+    @Prop({default: ""})
+    category: string;
+    
+    @Prop({default: Date.now(), required: true})
+    startDate: Date;
+
+    @Prop({required: true})
+    endDate: Date;
 
     @Prop({default: false})
-    do: Boolean;
+    do: boolean;
 }
 
 export const todoSchema = SchemaFactory.createForClass(Todo)

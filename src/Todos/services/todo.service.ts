@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Todo } from '../models/todos.schema';
-import { TodoDTO } from '../dtos/todo.dto';
-import { CreateTodoDTO } from '../dtos/createTodo.dto';
+import { updateTodoDTO } from '../dtos/update-todo.dto';
+import { CreateTodoDTO } from '../dtos/create-todo.dto';
 
 @Injectable()
 export class TodoService {
@@ -16,46 +16,38 @@ export class TodoService {
             newTodo.save();
             return newTodo;
         } catch (error) {
-            throw new HttpException(
-                {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: 'Erreur lors de la création de la tâche',
-                }, 
-                HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
+            console.log('error in the service with message: ', error.message)
     }
+}
 
     async getTodos(): Promise<Todo[]> {
-
-        const todos = await this.todoModel.find();
-        return todos;
+        try {
+            return await this.todoModel.find();
+        } catch (error) {
+            console.log('error in the service with message: ', error.message)
+        }
     }
 
     async getTodoById( id: string): Promise<Todo> {
 
-        const todo = await this.todoModel.findById({'_id': id});
-        if(!todo) {
-            throw new HttpException(`Le todo possédant l'id ${id} est introuvable`, HttpStatus.NOT_FOUND)
+        try {
+            const todo = await this.todoModel.findById({'_id': id});
+            if(!todo) {
+                throw new HttpException(`Le todo possédant l'id ${id} est introuvable`, HttpStatus.NOT_FOUND)
+            }
+            return todo;
+        } catch (error) {
+            console.log('error in the service with message: ', error.message)
         }
-        return todo;
+  
     }
 
-    async updateTodo(updatedTodo: TodoDTO[]){
+    async updateTodo(id:string , updatedTodo: updateTodoDTO){
 
         try {
-            updatedTodo.forEach(async (newTodo) => {
-                await this.todoModel.findByIdAndUpdate(newTodo._id , newTodo, {new: true}); 
-            })
-            console.log("Tab Todos :", updatedTodo)
-            // setTimeout(() => {console.log("Tab Todos :", updatedTodo)}, 5000)
+            return await this.todoModel.findOneAndUpdate({"_id": id}, updatedTodo)
         } catch (error) {
-            throw new HttpException(
-                {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: 'Erreur lors de la modification de la tâche',
-                }, 
-                HttpStatus.INTERNAL_SERVER_ERROR);  
+            console.log('error in the service with message: ', error.message) 
         }
     }
 
@@ -71,12 +63,7 @@ export class TodoService {
             
             await this.todoModel.findByIdAndDelete(id); 
         } catch (error) {
-            throw new HttpException(
-                {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: 'Erreur lors de la suppréssion de la tâche',
-                }, 
-                HttpStatus.INTERNAL_SERVER_ERROR);  
+            console.log('error in the service with message: ', error.message)
         }
     }
 }

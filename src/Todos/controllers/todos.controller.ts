@@ -1,14 +1,14 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
-import { TodoDTO } from '../dtos/todo.dto';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import { updateTodoDTO } from '../dtos/update-todo.dto';
 import { TodoService } from '../services/todo.service';
-import { CreateTodoDTO } from '../dtos/createTodo.dto';
+import { CreateTodoDTO } from '../dtos/create-todo.dto';
 
 @Controller('todos')
 export class TodosController {
 
     constructor( private readonly todoService: TodoService){}
 
-    @Post('add-todo')
+    @Post()
     async createTodo(@Body() TodoDTO: CreateTodoDTO, @Res() res) {
         const newTodo = await this.todoService.createTodo(TodoDTO);
         console.log(newTodo);
@@ -36,20 +36,48 @@ export class TodosController {
           });
     }
 
-    @Put()
-    async updateTodo(@Body() updatedTodo: TodoDTO[], @Res() res) {
-        const modifiedTodo = await this.todoService.updateTodo(updatedTodo);
-        return res.status(HttpStatus.OK).json({
-            message: 'Tâche modifiée avec succès',
-            todo: modifiedTodo,
-          });
+    // @Put()
+    // async updateTodo(@Body() updatedTodo: TodoDTO[], @Res() res) {
+    //     const modifiedTodo = await this.todoService.updateTodo(updatedTodo);
+    //     return res.status(HttpStatus.OK).json({
+    //         message: 'Tâche modifiée avec succès',
+    //         todo: modifiedTodo,
+    //       });
+    // }
+
+    // update a specific Todo 
+    @Put(':id')
+    async updateTodo(@Param('id') id: string ,@Body() updatedTodo: updateTodoDTO, @Res() res) {
+        try {
+            const modifiedTodo = await this.todoService.updateTodo(id, updatedTodo);
+            return res.status(HttpStatus.OK).json({
+                message: 'Tâche modifiée avec succès',
+                todo: modifiedTodo,
+              });
+        } catch (error) {
+            if(error.code == 404)
+                throw new HttpException(error.message, HttpStatus.NOT_FOUND)
+            else 
+                console.log("error: ", error);
+        }
+
     }
     
     @Delete(':id')
     async deleteTodo( @Param('id') id: string, @Res() res ) {
-        await this.todoService.deleteTodo(id);
-        return res.status(HttpStatus.OK).json({
-            message: 'Tâche supprimée avec succès',
-          });
+        try {
+            await this.todoService.deleteTodo(id);
+            return res.status(HttpStatus.OK).json({
+                message: 'Tâche supprimée avec succès',
+              });
+        } catch (error) {
+            if(error.code == 404)
+                throw new HttpException(error.message, HttpStatus.NOT_FOUND)
+            else if(error.code == 500)
+                throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+            else
+                console.log("error :", error)
+        }
+
     }
 }
